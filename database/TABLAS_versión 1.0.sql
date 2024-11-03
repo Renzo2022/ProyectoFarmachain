@@ -1,0 +1,56 @@
+--TABLA DE ROLES
+CREATE TABLE ROLES (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE CHECK (nombre IN ('JEFE', 'TRABAJADOR'))
+);
+
+--DATOS PARA LOS ROLES
+INSERT INTO ROLES (nombre) VALUES ('JEFE');
+INSERT INTO ROLES (nombre) VALUES ('TRABAJADOR');
+
+--TABLA DE USUARIOS
+CREATE TABLE USUARIOS (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    correo VARCHAR(50) NOT NULL UNIQUE,
+    contrasena VARCHAR(60) NOT NULL,
+    id_Rol INT NOT NULL,
+    FOREIGN KEY (id_Rol) REFERENCES ROLES(id)
+);
+
+SHOW timezone;
+
+SET timezone = 'America/Lima';
+
+--TABLA DE FARMACOS
+CREATE TABLE FARMACOS (
+	id SERIAL PRIMARY KEY,
+	nombre VARCHAR(50) NOT NULL,
+	cantidad INTEGER NOT NULL,
+	ubicacion VARCHAR(50) NOT NULL
+);
+
+--TABLA DE MOVIMIENTOS
+CREATE TABLE MOVIMIENTOS (
+	id SERIAL PRIMARY KEY,
+	tipo VARCHAR(60) NOT NULL,
+	cantidad INTEGER NOT NULL,
+	fecha timestamp with time zone NOT NULL,
+	id_jefe INT NOT NULL,
+    id_trabajador INT NOT NULL,
+    id_farmaco INT NOT NULL,
+    FOREIGN KEY (id_jefe) REFERENCES USUARIOS(id),
+    FOREIGN KEY (id_trabajador) REFERENCES USUARIOS(id),
+    FOREIGN KEY (id_farmaco) REFERENCES FARMACOS(id)
+);
+
+--TABLA DE ALERTAS
+CREATE TABLE ALERTAS (
+	id SERIAL PRIMARY KEY,
+	stock_minimo INTEGER NOT NULL,
+	mensaje TEXT NOT NULL,
+	fecha timestamp with time zone NOT NULL,
+	contrado_generado VARCHAR(50)  NOT NULL,
+	id_farmaco INT NOT NULL,
+	FOREIGN KEY (id_farmaco) REFERENCES FARMACOS(id)
+);

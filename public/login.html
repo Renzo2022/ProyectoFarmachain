@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            text-align: left;
+        }
+        input {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            font-size: 0.9em;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <a href="/pagina-principal" class="back-button">Volver a Inicio</a> <!-- Botón para regresar a la página principal -->
+    
+    <div class="container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <label for="correo">Correo:</label>
+            <input type="email" id="correo" placeholder="Correo" required>
+            
+            <label for="contrasena">Contraseña:</label>
+            <input type="password" id="contrasena" placeholder="Contraseña" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const correo = document.getElementById('correo').value;
+            const contrasena = document.getElementById('contrasena').value;
+
+            if (!correo || !contrasena) {
+                alert('Por favor ingrese todos los campos');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ correo, contrasena })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Almacenar el token y nombre en sessionStorage
+                    sessionStorage.setItem('token', data.token);
+                    sessionStorage.setItem('nombreUsuario', data.nombre);
+
+                    // Redirigir según el rol del usuario
+                    if (data.id_rol === 1) {
+                        window.location.href = '/panel-jefe';
+                    } else if (data.id_rol === 2) {
+                        window.location.href = '/panel-trabajador';
+                    }
+                } else {
+                    if (data.error === "Token expirado") {
+                        alert("Su sesión ha expirado. Inicie sesión nuevamente.");
+                        window.location.href = "/login";
+                    } else {
+                        alert(data.msg); // Mostrar mensaje de error del servidor
+                    }
+                }
+            } catch (error) {
+                console.error('Error en el login:', error);
+                alert('Error en el servidor. Inténtalo de nuevo más tarde.');
+            }
+        });
+    </script>
+</body>
+</html>

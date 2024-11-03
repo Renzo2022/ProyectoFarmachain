@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del trabajador de inventario</title>
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 20px auto;
+            font-size: 1.5em;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #28a745;
+        }
+
+        .btn-secondary:hover {
+            background-color: #218838;
+        }
+
+        #logout {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.3em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="user-info">
+            <span id="user-name">Cargando...</span>
+        </div>
+
+        <h1>Funcionalidades para el TRABAJADOR</h1>
+
+        <button id="logout" class="btn btn-secondary">Cerrar sesión</button>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        const token = sessionStorage.getItem('token');
+        const logout = document.querySelector('#logout');
+        const userNameSpan = document.querySelector('#user-name');
+
+        // Decodificar el token JWT para obtener el nombre del usuario
+        if (token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const decodedData = JSON.parse(window.atob(base64));
+
+            const nombreUsuario = decodedData.nombre || "Usuario";
+            userNameSpan.textContent = `Hola, ${nombreUsuario}`;
+        }
+
+        // Cerrar sesión
+        logout.addEventListener('click', () => {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('nombreUsuario');
+            window.location.href = "/login";
+        });
+
+    </script>
+</body>
+</html>

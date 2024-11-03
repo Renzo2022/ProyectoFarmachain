@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Trabajador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            text-align: left;
+        }
+        input {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #28a745;
+            margin-top: 20px;
+        }
+        .btn-secondary:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registrar Trabajador</h1>
+
+        <form id="create-vet-form">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" required>
+            <br>
+            <label for="correo">Correo:</label>
+            <input type="email" id="correo" required>
+            <br>
+            <label for="contrasena">Contraseña:</label>
+            <input type="password" id="contrasena" required>
+            <br>
+            <button type="submit" class="btn">Crear Trabajador</button>
+        </form>
+
+        <!-- Botón para regresar al panel de administración -->
+        <button id="back-to-jefe" class="btn btn-secondary">Volver al panel principal</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const createVetForm = document.querySelector('#create-vet-form');
+        const backToJefeButton = document.querySelector('#back-to-jefe');
+
+        // Crear veterinario
+        createVetForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const nombre = document.querySelector('#nombre').value;
+            const correo = document.querySelector('#correo').value;
+            const contrasena = document.querySelector('#contrasena').value;
+
+            // Asegurarse de que el token esté correctamente almacenado y enviado
+            const token = sessionStorage.getItem('token'); // Cambiado a sessionStorage
+            if (!token) {
+                alert('Usuario no autenticado. Por favor, inicie sesión.');
+                return;
+            }
+
+            try {
+                const response = await axios.post('/api/v1/users/registrar-trabajador', {
+                    nombre,
+                    correo,
+                    contrasena,
+                    id_rol: 2  
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`, // Enviar el token correctamente en la cabecera
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.data.ok) {
+                    alert('Trabajador creado exitosamente');
+                    createVetForm.reset(); // Limpiar el formulario después de crear
+                } else {
+                    alert('Error al crear trabajador: ' + response.data.msg);
+                }
+            } catch (error) {
+                console.error('Error al crear trabajador:', error);
+                if (error.response && error.response.status === 401) {
+                    alert('Autenticación fallida. Por favor, inicie sesión nuevamente.');
+                    window.location.href = '/login'; // Redirigir al login si el token expira
+                } else {
+                    alert('Error al crear trabajador.');
+                }
+            }
+        });
+
+        // Redirigir al panel de jefe
+        backToJefeButton.addEventListener('click', () => {
+            window.location.href = '/panel-jefe'; // Redirigir al panel del jefe
+        });
+    </script>
+</body>
+</html>
