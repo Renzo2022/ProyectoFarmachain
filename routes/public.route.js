@@ -32,4 +32,24 @@ router.get('/panel-trabajador', (req, res) => {
     res.sendFile(path.join(publicPath, "panelTrabajador.html")); // Panel del trabajador
 });
 
+router.get('/ingresar-farmaco', (req, res) => {
+    res.sendFile(path.join(publicPath, "ingresarFarmaco.html")); // Ingresar un farmaco.
+});
+
+router.get('/ver-farmacos-trabajador', (req, res) => {
+    res.sendFile(path.join(publicPath, "verFarmacosTrabajador.html")); // Ver los farmacos
+});
+
+router.get('/ver-farmacos-jefe', (req, res) => {
+    res.sendFile(path.join(publicPath, "verFarmacosJefe.html")); // Ver los farmacos
+});
+
+router.get('/ver-movimientos-trabajador', (req, res) => {
+    res.sendFile(path.join(publicPath, "verMovimientosTrabajador.html")); // Ver los farmacos
+});
+
+router.get('/ver-movimientos-jefe', (req, res) => {
+    res.sendFile(path.join(publicPath, "verMovimientosJefe.html")); // Ver los farmacos
+});
+
 export default router; // Exportar las rutas configuradas para uso en la aplicación

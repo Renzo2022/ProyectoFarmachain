@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar Fármaco</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            text-align: left;
+        }
+        input {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #28a745;
+            margin-top: 20px;
+        }
+        .btn-secondary:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ingresar Fármaco</h1>
+        <form id="crearFarmacoForm">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
+            
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" id="cantidad" name="cantidad" required>
+            
+            <label for="ubicacion">Ubicación:</label>
+            <input type="text" id="ubicacion" name="ubicacion" required>
+            
+            <button type="submit" class="btn">Agregar Fármaco</button>
+        </form>
+
+        <!-- Botón para regresar al panel de administración -->
+        <button id="back-to-panel" class="btn btn-secondary">Volver al panel principal</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const createFarmacoForm = document.querySelector('#crearFarmacoForm');
+        const backToPanelButton = document.querySelector('#back-to-panel');
+
+        // Crear fármaco
+        createFarmacoForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const nombre = document.getElementById('nombre').value;
+            const cantidad = document.getElementById('cantidad').value;
+            const ubicacion = document.getElementById('ubicacion').value;
+
+            const token = sessionStorage.getItem('token');
+            if (!token) {
+                alert('Usuario no autenticado. Por favor, inicie sesión.');
+                return;
+            }
+
+            try {
+                const response = await axios.post('/api/v1/farmacos/create', {
+                    nombre,
+                    cantidad,
+                    ubicacion
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.data.ok) {
+                    alert('Fármaco agregado exitosamente: ' + response.data.farmaco.nombre);
+                    createFarmacoForm.reset(); // Limpiar el formulario después de agregar
+                } else {
+                    alert('Error al agregar fármaco: ' + response.data.msg);
+                }
+            } catch (error) {
+                console.error('Error al agregar fármaco:', error);
+                if (error.response && error.response.status === 400 && error.response.data.msg === 'Este fármaco ya existe') {
+                    alert(error.response.data.msg); // Mostrar mensaje de error específico para fármaco duplicado
+                } else if (error.response && error.response.status === 401) {
+                    alert('Autenticación fallida. Por favor, inicie sesión nuevamente.');
+                    window.location.href = '/login'; // Redirigir al login si el token expira
+                } else {
+                    alert('Error al agregar fármaco.');
+                }
+            }
+        });
+
+        // Redirigir al panel principal
+        backToPanelButton.addEventListener('click', () => {
+            window.location.href = '/panel-jefe'; // Redirigir al panel principal
+        });
+    </script>
+</body>
+</html>

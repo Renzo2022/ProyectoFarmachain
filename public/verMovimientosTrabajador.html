@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Movimientos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #3b4dab;
+            color: white;
+        }
+        .back-button {
+            background-color: #28a745;
+            margin-top: 20px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+        }
+        .back-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Movimientos de Fármacos</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Fármaco</th>
+                    <th>Cantidad</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                </tr>
+            </thead>
+            <tbody id="movimientosTableBody">
+                <!-- Los datos de los movimientos se insertarán aquí -->
+            </tbody>
+        </table>
+        <button class="back-button" onclick="window.location.href='/panel-trabajador'">Volver al panel principal</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const movimientosTableBody = document.getElementById('movimientosTableBody');
+        const token = sessionStorage.getItem('token');
+
+        // Función para cargar los movimientos
+        async function loadMovimientos() {
+            try {
+                const response = await axios.get('/api/v1/movimientos', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.data.ok) {
+                    const movimientos = response.data.movimientos;
+                    movimientosTableBody.innerHTML = ''; // Limpiar la tabla
+
+                    movimientos.forEach(movimiento => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${movimiento.tipo}</td>
+                            <td>${new Date(movimiento.fecha).toLocaleString()}</td>
+                            <td>${movimiento.farmaco_nombre}</td>
+                            <td>${movimiento.cantidad}</td>
+                            <td>${movimiento.usuario_nombre}</td>
+                            <td>${movimiento.usuario_rol}</td>
+                        `;
+                        movimientosTableBody.appendChild(row);
+                    });
+                } else {
+                    alert('Error al obtener los movimientos');
+                }
+            } catch (error) {
+                console.error('Error al cargar movimientos:', error);
+                alert('Error al cargar movimientos.');
+            }
+        }
+
+        // Cargar los movimientos cuando la página se cargue
+        loadMovimientos();
+    </script>
+</body>
+</html>
