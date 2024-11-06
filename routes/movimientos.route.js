@@ -4,8 +4,10 @@ import { verifyToken, verifyTrabajador, verifyJefe } from '../middlewares/jwt.mi
 
 const router = Router();
 
-// Rutas para manejar los movimientos
-router.post('/createFarmacoWithMovimiento', verifyToken, verifyTrabajador, MovimientosController.createFarmacoWithMovimiento); // Crear fármaco y movimiento
-router.get('/', verifyToken, verifyTrabajador, MovimientosController.getMovimientos); // Obtener todos los movimientos
+// Ruta para crear un fármaco junto con un movimiento, requiere autenticación y permisos de trabajador
+router.post('/createFarmacoWithMovimiento', verifyToken, verifyTrabajador, MovimientosController.createFarmacoWithMovimiento);
+
+// Ruta para obtener todos los movimientos, requiere autenticación y permisos de trabajador
+router.get('/', verifyToken, verifyTrabajador, MovimientosController.getMovimientos);
 
 export default router;

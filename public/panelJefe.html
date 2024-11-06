@@ -87,6 +87,8 @@
         <br>
         <button id="ver-movimientos" class="btn">Ver movimientos</button>
         <br>
+        <button id="modificar-stock" class="btn">Modificar stock mínimo</button>
+        <br>
         <button id="logout" class="btn btn-secondary">Cerrar sesión</button>
 
     </div>
@@ -100,6 +102,7 @@
         const ingresarFarmacoBtn = document.querySelector('#ingresar-farmaco');
         const consultarFarmacoBtn = document.querySelector('#consultar-farmaco');
         const verMovimientosBtn = document.querySelector('#ver-movimientos');
+        const modificarStockBtn = document.querySelector('#modificar-stock');
         const userNameSpan = document.querySelector('#user-name');
 
          // Decodificar el token JWT para obtener el nombre del usuario
@@ -134,8 +137,14 @@
             window.location.href = "/ingresar-farmaco";
         });
 
+        // Redirigir a la página de mostrar movimientos
         verMovimientosBtn.addEventListener('click', () => {
             window.location.href = "/ver-movimientos-jefe";
+        });
+
+        // Redirigiar a la página de modificar el stock minimo
+        modificarStockBtn.addEventListener('click', () => {
+            window.location.href = "/modificar-stock-minimo";
         });
 
     </script>

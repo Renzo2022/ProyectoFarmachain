@@ -1,16 +1,16 @@
-// Importar módulos necesarios: Router de Express, controlador de usuarios y middlewares para autenticación y permisos
 import { Router } from "express";
 import { UserController } from "../controllers/usuarios.controller.js";
-import { verifyToken, verifyJefe, verifyTrabajador} from "../middlewares/jwt.middlewares.js";
+import { verifyToken, verifyJefe } from "../middlewares/jwt.middlewares.js";
 
-const router = Router(); // Crear instancia del Router de Express
+const router = Router();
 
-// Rutas de autenticación y gestión de usuarios
-router.post('/register', UserController.register); // Registro de usuarios
-router.post('/login', UserController.login); // Inicio de sesión
+// Ruta para registrar usuarios
+router.post('/register', UserController.register);
 
-// Solo jefes pueden registrar trabajadores
+// Ruta para iniciar sesión
+router.post('/login', UserController.login);
+
+// Ruta para que el jefe pueda registrar trabajadores (requiere autenticación y permisos de jefe)
 router.post('/registrar-trabajador', verifyToken, verifyJefe, UserController.createTrabajador);
 
-// Exportar el router para usarlo en la aplicación
 export default router;

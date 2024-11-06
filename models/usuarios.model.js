@@ -1,9 +1,6 @@
 import { db } from '../database/connection.js';
 
-// Consulta para crear un usuario
-// Función asincrónica que inserta un nuevo usuario en la tabla `usuarios`.
-// Recibe un objeto con los valores `nombre`, `correo`, `contrasena`, y `id_rol`.
-// Retorna el registro recién creado, incluyendo solo los campos `id`, `nombre`, `correo` e `id_rol`.
+// Crear un usuario
 const create = async ({ nombre, correo, contrasena, id_rol }) => {
     const query = {
         text: `
@@ -18,9 +15,7 @@ const create = async ({ nombre, correo, contrasena, id_rol }) => {
     return rows[0];
 }
 
-// Consulta para encontrar un usuario por su correo
-// Función asincrónica que selecciona un usuario en la tabla `usuarios` según su correo.
-// Retorna el primer registro encontrado con el correo especificado.
+// Encontrar un usuario por su correo
 const findOneByEmail = async (correo) => {
     const query = {
         text: `
@@ -33,9 +28,7 @@ const findOneByEmail = async (correo) => {
     return rows[0];
 }
 
-// Consulta para mostrar todos los usuarios
-// Función asincrónica que selecciona todos los registros en la tabla `usuarios`.
-// Retorna una lista de todos los usuarios registrados.
+// Obtener todos los usuarios
 const findAll = async () => {
     const query = {
         text: `
@@ -46,7 +39,6 @@ const findAll = async () => {
     return rows;
 }
 
-// Exportar el modelo de usuario, que incluye las funciones para crear, encontrar y eliminar usuarios.
 export const UserModel = {
     create,
     findOneByEmail,

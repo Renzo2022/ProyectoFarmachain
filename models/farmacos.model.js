@@ -1,6 +1,6 @@
 import { db } from '../database/connection.js';
 
-// Función para crear un fármaco
+// Crear un fármaco
 const createFarmaco = async (nombre, cantidad, ubicacion) => {
     const query = {
         text: `
@@ -14,7 +14,7 @@ const createFarmaco = async (nombre, cantidad, ubicacion) => {
     return rows[0];
 };
 
-// Función para obtener todos los fármacos
+// Obtener todos los fármacos
 const getFarmacos = async () => {
     const query = {
         text: `
@@ -25,7 +25,7 @@ const getFarmacos = async () => {
     return rows;
 };
 
-// Función para actualizar un fármaco
+// Actualizar un fármaco
 const updateFarmaco = async (id, nombre, cantidad, ubicacion) => {
     const query = {
         text: `
@@ -40,7 +40,7 @@ const updateFarmaco = async (id, nombre, cantidad, ubicacion) => {
     return rows[0];
 };
 
-// Función para eliminar un fármaco
+// Eliminar un fármaco
 const deleteFarmaco = async (id) => {
     const query = {
         text: `
@@ -53,7 +53,7 @@ const deleteFarmaco = async (id) => {
     return rows[0];
 };
 
-// Función para buscar un fármaco por nombre
+// Buscar un fármaco por nombre
 const getFarmacoByNombre = async (nombre) => {
     const query = {
         text: `
@@ -65,11 +65,42 @@ const getFarmacoByNombre = async (nombre) => {
     return rows[0];
 };
 
-// Exportar el modelo de fármacos
+// Aumentar cantidad de fármaco
+const aumentarFarmaco = async (id, cantidad) => {
+    const query = {
+        text: `
+        UPDATE FARMACOS
+        SET cantidad = cantidad + $1
+        WHERE id = $2
+        RETURNING *
+        `,
+        values: [cantidad, id]
+    };
+    const { rows } = await db.query(query);
+    return rows[0];
+};
+
+// Descontar cantidad de fármaco
+const descontarFarmaco = async (id, cantidad) => {
+    const query = {
+        text: `
+        UPDATE FARMACOS
+        SET cantidad = cantidad - $1
+        WHERE id = $2
+        RETURNING *
+        `,
+        values: [cantidad, id]
+    };
+    const { rows } = await db.query(query);
+    return rows[0];
+};
+
 export const FarmacosModel = {
     createFarmaco,
     getFarmacos,
     updateFarmaco,
     deleteFarmaco,
-    getFarmacoByNombre
+    getFarmacoByNombre,
+    aumentarFarmaco,
+    descontarFarmaco
 };

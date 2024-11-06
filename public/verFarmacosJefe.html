@@ -81,18 +81,28 @@
         .back-button:hover {
             background-color: #218838;
         }
-        .btn-delete {
-            background-color: #ff4d4d;
-            padding: 8px 15px;
-            font-size: 0.9em;
-            color: #fff;
+        .input-quantity {
+            width: 70px;
+            padding: 5px;
+            margin-right: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .btn-action {
+            padding: 5px 10px;
+            font-size: 1em;
+            margin-right: 5px;
+            cursor: pointer;
             border: none;
             border-radius: 5px;
-            cursor: pointer;
-            margin-left: 10px;
         }
-        .btn-delete:hover {
-            background-color: #cc0000;
+        .btn-increase {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-decrease {
+            background-color: #F44336;
+            color: white;
         }
     </style>
 </head>
@@ -169,7 +179,10 @@
                         <td>${farmaco.cantidad}</td>
                         <td>${farmaco.ubicacion}</td>
                         <td>
-                            <button class="btn-delete" onclick="eliminarFarmaco(${farmaco.id})">Eliminar</button>
+                            <input type="number" class="input-quantity" id="cantidadAumentar" placeholder="Cantidad">
+                            <button class="btn-action btn-increase" onclick="aumentarCantidad(${farmaco.id})">Aumentar</button>
+                            <input type="number" class="input-quantity" id="cantidadDescontar" placeholder="Cantidad">
+                            <button class="btn-action btn-decrease" onclick="descontarCantidad(${farmaco.id}, ${farmaco.cantidad}, '${farmaco.nombre}')">Descontar</button>
                         </td>
                     `;
                     searchedFarmacoTableBody.appendChild(row);
@@ -182,27 +195,66 @@
             }
         }
 
-        async function eliminarFarmaco(id) {
+        async function aumentarCantidad(id) {
+            const cantidad = document.getElementById('cantidadAumentar').value;
             const token = sessionStorage.getItem('token');
 
-            if (!token) {
-                alert('Usuario no autenticado. Por favor, inicie sesión.');
-                window.location.href = '/login';
+            if (!cantidad || cantidad <= 0) {
+                alert('Por favor, ingrese una cantidad válida para aumentar.');
                 return;
             }
 
             try {
-                await axios.delete(`/api/v1/farmacos/delete/${id}`, {
+                await axios.put(`/api/v1/farmacos/aumentar/${id}`, { cantidad: parseInt(cantidad) }, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
-                alert('Fármaco eliminado');
-                fetchFarmacos(); // Recargar la lista de fármacos después de eliminar
-                buscarFarmacoPorNombre(); // También recargar el fármaco buscado
+                alert('Cantidad aumentada exitosamente');
+                fetchFarmacos();
+                buscarFarmacoPorNombre();
             } catch (error) {
-                console.error('Error al eliminar fármaco:', error);
-                alert('Error al eliminar fármaco.');
+                console.error('Error al aumentar cantidad:', error);
+                alert('Error al aumentar la cantidad.');
+            }
+        }
+
+        async function descontarCantidad(id, stockActual, nombreFarmaco) {
+            const cantidad = document.getElementById('cantidadDescontar').value;
+            const token = sessionStorage.getItem('token');
+
+            if (!cantidad || cantidad <= 0) {
+                alert('Por favor, ingrese una cantidad válida para descontar.');
+                return;
+            }
+
+            try {
+                const response = await axios.get(`/api/v1/alertas/farmaco/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const alerta = response.data.alerta;
+                const nuevaCantidad = stockActual - parseInt(cantidad);
+
+                if (nuevaCantidad < alerta.stock_minimo) {
+                    alert(`El stock mínimo de ${nombreFarmaco} es de ${alerta.stock_minimo}. No puede disminuir más.`);
+                    return;
+                }
+
+                await axios.put(`/api/v1/farmacos/descontar/${id}`, { cantidad: parseInt(cantidad) }, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                alert('Cantidad descontada exitosamente');
+                fetchFarmacos();
+                buscarFarmacoPorNombre();
+            } catch (error) {
+                console.error('Error al descontar cantidad:', error);
+                alert('Error al descontar la cantidad.');
             }
         }
 
@@ -245,7 +297,7 @@
         }
 
         // Cargar la lista de fármacos al cargar la página
-        fetchFarmacos();
-    </script>
+        document.addEventListener('DOMContentLoaded', fetchFarmacos);
+    </script>  
 </body>
 </html>

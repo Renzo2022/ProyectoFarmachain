@@ -153,7 +153,6 @@ const createTrabajador = async (req, res) => {
     }
 };
 
-// Exporta los controladores para ser utilizados en otras partes de la aplicación
 export const UserController = {
     register,
     login,

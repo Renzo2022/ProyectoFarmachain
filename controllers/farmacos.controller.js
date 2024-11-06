@@ -1,8 +1,9 @@
 import { FarmacosModel } from '../models/farmacos.model.js';
 import { MovimientosModel } from '../models/movimientos.model.js';
+import { AlertasModel } from '../models/alertas.model.js';
 
 // Controlador para crear un nuevo fármaco
-const createFarmaco = async (req, res) => {
+const createFarmaco = async (req, res) => { //VARIABLE ESTADO PARA ACTIVAR O DESACTIVAR UN FARMACO
     try {
         const { nombre, cantidad, ubicacion } = req.body;
         
@@ -73,38 +74,82 @@ const getFarmacoByNombre = async (req, res) => {
     }
 };
 
+// Controlador para crear un farmaco y a la par un movimiento de tipo 'ENTRADA'
 const createFarmacoWithMovimiento = async (req, res) => {
     try {
-        const { nombre, cantidad, ubicacion } = req.body;
-        const id_usuario = req.user.userId; // Obtener el id del usuario autenticado
+        const { nombre, cantidad, ubicacion, stock_minimo } = req.body;
+        const id_usuario = req.user.userId;
 
-        // Verificar que todos los campos necesarios estén presentes
-        if (!nombre || !cantidad || !ubicacion) {
+        if (!nombre || !cantidad || !ubicacion || !stock_minimo) {
             return res.status(400).json({ ok: false, msg: 'Por favor complete todos los campos' });
         }
 
-        // Intentar crear el fármaco en la base de datos
         let newFarmaco;
         try {
             newFarmaco = await FarmacosModel.createFarmaco(nombre, cantidad, ubicacion);
         } catch (error) {
-            if (error.code === '23505') { // Código de error para violación de restricción de unicidad en PostgreSQL
+            if (error.code === '23505') {
                 return res.status(400).json({ ok: false, msg: 'Este fármaco ya existe' });
             }
-            throw error; // Re-lanza el error si no es una violación de unicidad
+            throw error;
         }
 
-        // Crear el movimiento de tipo 'ENTRADA' para el fármaco agregado
+        // Crear el movimiento de tipo 'ENTRADA'
         const tipo = 'ENTRADA';
-        const fecha = new Date(); // Fecha del sistema en el momento de la creación
-
-        // Crear el movimiento en la base de datos
+        const fecha = new Date();
         await MovimientosModel.createMovimiento(tipo, cantidad, fecha, id_usuario, newFarmaco.id);
+
+        // Crear la alerta de stock mínimo
+        const mensaje = `El stock de ${nombre} ha sido registrado con un stock mínimo de ${stock_minimo}`;
+        const contrato_generado = "Contrato"; // Valor por defecto para contrato generado
+        await AlertasModel.createAlerta(stock_minimo, mensaje, fecha, contrato_generado, newFarmaco.id);
 
         return res.status(201).json({ ok: true, farmaco: newFarmaco });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({ ok: false, msg: 'Error del servidor' });
+    }
+};
+
+// Controlador para aumentar la cantidad de un farmaco y a la par crear un movimiento de tipo 'ENTRADA'
+const aumentarFarmaco = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { cantidad } = req.body;
+        const id_usuario = req.user.userId;
+
+        const updatedFarmaco = await FarmacosModel.aumentarFarmaco(id, cantidad);
+
+        // Crear el movimiento de tipo 'ENTRADA'
+        const tipo = 'ENTRADA';
+        const fecha = new Date();
+        await MovimientosModel.createMovimiento(tipo, cantidad, fecha, id_usuario, updatedFarmaco.id);
+
+        return res.status(200).json({ ok: true, farmaco: updatedFarmaco });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ ok: false, msg: 'Error al aumentar el fármaco' });
+    }
+};
+
+// Controlador para descontar la cantidad de un farmaco y a la par crear un movimiento de tipo 'SALIDA'
+const descontarFarmaco = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { cantidad } = req.body;
+        const id_usuario = req.user.userId;
+
+        const updatedFarmaco = await FarmacosModel.descontarFarmaco(id, cantidad);
+
+        // Crear el movimiento de tipo 'SALIDA'
+        const tipo = 'SALIDA';
+        const fecha = new Date();
+        await MovimientosModel.createMovimiento(tipo, cantidad, fecha, id_usuario, updatedFarmaco.id);
+
+        return res.status(200).json({ ok: true, farmaco: updatedFarmaco });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ ok: false, msg: 'Error al descontar el fármaco' });
     }
 };
 
@@ -114,5 +159,7 @@ export const FarmacosController = {
     updateFarmaco,
     deleteFarmaco,
     getFarmacoByNombre,
-    createFarmacoWithMovimiento
+    createFarmacoWithMovimiento,
+    aumentarFarmaco,
+    descontarFarmaco
 };

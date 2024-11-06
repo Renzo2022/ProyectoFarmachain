@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificar Stock Mínimo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #3b4dab;
+            color: white;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        input[type="number"] {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 90px;
+        }
+        .back-button {
+            background-color: #28a745;
+            margin-top: 20px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+        }
+        .back-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Modificar Stock Mínimo</h2>
+        <table id="tablaFarmacos">
+            <thead>
+                <tr>
+                    <th>Nombre del Fármaco</th>
+                    <th>Stock Mínimo Actual</th>
+                    <th>Nuevo Stock Mínimo</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="farmacosTableBody">
+                <!-- Los datos de los fármacos se insertarán aquí -->
+            </tbody>
+        </table>
+        <button class="back-button" onclick="window.location.href='/panel-jefe'">Volver al panel principal</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const token = sessionStorage.getItem('token');
+
+        if (!token) {
+            alert('Usuario no autenticado. Por favor, inicie sesión.');
+            window.location.href = '/login';
+        }
+
+        async function obtenerFarmacosConStockMinimo() {
+            try {
+                const response = await axios.get('/api/v1/farmacos', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const farmacos = response.data.farmacos;
+                const tableBody = document.getElementById('farmacosTableBody');
+
+                tableBody.innerHTML = '';
+
+                for (const farmaco of farmacos) {
+                    try {
+                        const alertaResponse = await axios.get(`/api/v1/alertas/farmaco/${farmaco.id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        const alerta = alertaResponse.data.alerta;
+
+                        if (alerta && alerta.id) {
+                            console.log('Alerta encontrada con ID:', alerta.id);
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${farmaco.nombre}</td>
+                                <td>${alerta.stock_minimo}</td>
+                                <td>
+                                    <input type="number" min="1" id="nuevoStockMinimo-${alerta.id}" placeholder="Nuevo stock" required>
+                                </td>
+                                <td>
+                                    <button class="btn" onclick="actualizarStockMinimo(${alerta.id})">Actualizar</button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        } else {
+                            console.warn(`No se encontró alerta para el fármaco con id ${farmaco.id}`);
+                        }
+                    } catch (innerError) {
+                        console.error(`Error al obtener alerta para el fármaco con id ${farmaco.id}:`, innerError);
+                    }
+                }
+            } catch (error) {
+                console.error('Error al obtener los fármacos:', error);
+                alert('Error al cargar la lista de fármacos.');
+            }
+        }
+
+        async function actualizarStockMinimo(id) {
+            console.log('ID recibido:', id); // Verificación adicional
+            if (!id || isNaN(id)) {
+                alert('ID inválido para la actualización del stock mínimo.');
+                return;
+            }
+
+            const nuevoStockMinimoInput = document.getElementById(`nuevoStockMinimo-${id}`);
+            if (!nuevoStockMinimoInput) {
+                console.error('Elemento de entrada no encontrado para id:', id);
+                alert('No se pudo encontrar el campo de entrada para el stock mínimo.');
+                return;
+            }
+            const nuevoStockMinimo = nuevoStockMinimoInput.value;
+            console.log('Nuevo stock mínimo:', nuevoStockMinimo); // Verificación adicional
+
+            if (!nuevoStockMinimo || nuevoStockMinimo <= 0) {
+                alert('El stock mínimo no puede ser menor o igual a 0.');
+                return;
+            }
+
+            try {
+                const response = await axios.put(`/api/v1/alertas/${id}`, { stock_minimo: parseInt(nuevoStockMinimo) }, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.data.ok) {
+                    alert('Stock mínimo actualizado correctamente');
+                    obtenerFarmacosConStockMinimo(); // Recargar la lista
+                } else {
+                    alert('Error al actualizar el stock mínimo');
+                }
+            } catch (error) {
+                console.error('Error al actualizar el stock mínimo:', error);
+                alert('Error al actualizar el stock mínimo.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', obtenerFarmacosConStockMinimo);
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultar Farmacos</title>
+    <title>Consultar fármacos</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -81,11 +81,34 @@
         .back-button:hover {
             background-color: #218838;
         }
+        .input-quantity {
+            width: 70px;
+            padding: 5px;
+            margin-right: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .btn-action {
+            padding: 5px 10px;
+            font-size: 1em;
+            margin-right: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+        .btn-increase {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-decrease {
+            background-color: #F44336;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Consultar fármacos</h2>
+        <h2>Consultar Fármacos</h2>
         <div class="search-section">
             <label for="nombreFarmaco">Nombre:</label>
             <input type="text" id="nombreFarmaco" placeholder="Ingrese nombre">
@@ -99,6 +122,7 @@
                     <th>Nombre</th>
                     <th>Cantidad</th>
                     <th>Ubicación</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="searchedFarmacoTableBody">
@@ -154,6 +178,12 @@
                         <td>${farmaco.nombre}</td>
                         <td>${farmaco.cantidad}</td>
                         <td>${farmaco.ubicacion}</td>
+                        <td>
+                            <input type="number" class="input-quantity" id="cantidadAumentar" placeholder="Cantidad">
+                            <button class="btn-action btn-increase" onclick="aumentarCantidad(${farmaco.id})">Aumentar</button>
+                            <input type="number" class="input-quantity" id="cantidadDescontar" placeholder="Cantidad">
+                            <button class="btn-action btn-decrease" onclick="descontarCantidad(${farmaco.id}, ${farmaco.cantidad}, '${farmaco.nombre}')">Descontar</button>
+                        </td>
                     `;
                     searchedFarmacoTableBody.appendChild(row);
                 } else {
@@ -162,6 +192,69 @@
             } catch (error) {
                 console.error('Error al buscar fármaco:', error);
                 alert('Error al buscar el fármaco.');
+            }
+        }
+
+        async function aumentarCantidad(id) {
+            const cantidad = document.getElementById('cantidadAumentar').value;
+            const token = sessionStorage.getItem('token');
+
+            if (!cantidad || cantidad <= 0) {
+                alert('Por favor, ingrese una cantidad válida para aumentar.');
+                return;
+            }
+
+            try {
+                await axios.put(`/api/v1/farmacos/aumentar/${id}`, { cantidad: parseInt(cantidad) }, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                alert('Cantidad aumentada exitosamente');
+                fetchFarmacos();
+                buscarFarmacoPorNombre();
+            } catch (error) {
+                console.error('Error al aumentar cantidad:', error);
+                alert('Error al aumentar la cantidad.');
+            }
+        }
+
+        async function descontarCantidad(id, stockActual, nombreFarmaco) {
+            const cantidad = document.getElementById('cantidadDescontar').value;
+            const token = sessionStorage.getItem('token');
+
+            if (!cantidad || cantidad <= 0) {
+                alert('Por favor, ingrese una cantidad válida para descontar.');
+                return;
+            }
+
+            try {
+                const response = await axios.get(`/api/v1/alertas/farmaco/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const alerta = response.data.alerta;
+                const nuevaCantidad = stockActual - parseInt(cantidad);
+
+                if (nuevaCantidad < alerta.stock_minimo) {
+                    alert(`El stock mínimo de ${nombreFarmaco} es de ${alerta.stock_minimo}. No puede disminuir más.`);
+                    return;
+                }
+
+                await axios.put(`/api/v1/farmacos/descontar/${id}`, { cantidad: parseInt(cantidad) }, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                alert('Cantidad descontada exitosamente');
+                fetchFarmacos();
+                buscarFarmacoPorNombre();
+            } catch (error) {
+                console.error('Error al descontar cantidad:', error);
+                alert('Error al descontar la cantidad.');
             }
         }
 
@@ -203,8 +296,8 @@
             }
         }
 
-        // Llamar a la función para obtener los fármacos al cargar la página
-        fetchFarmacos();
-    </script>
+        // Cargar la lista de fármacos al cargar la página
+        document.addEventListener('DOMContentLoaded', fetchFarmacos);
+    </script>  
 </body>
 </html>

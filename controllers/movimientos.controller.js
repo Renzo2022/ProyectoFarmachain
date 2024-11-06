@@ -2,7 +2,7 @@ import { MovimientosModel } from '../models/movimientos.model.js';
 import { FarmacosModel } from '../models/farmacos.model.js';
 
 // Controlador para crear un nuevo fármaco y automáticamente crear un movimiento
-const createFarmacoWithMovimiento = async (req, res) => {
+const createFarmacoWithMovimiento = async (req, res) => {//visualizar solo por tipo de movimiento
     try {
         const { nombre, cantidad, ubicacion } = req.body;
         const id_usuario = req.user.userId; // Obtener el id del usuario autenticado
@@ -39,7 +39,6 @@ const getMovimientos = async (req, res) => {
     }
 };
 
-// Exportar los controladores
 export const MovimientosController = {
     createFarmacoWithMovimiento,
     getMovimientos

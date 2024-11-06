@@ -1,6 +1,6 @@
 import { db } from '../database/connection.js';
 
-// Función para crear un movimiento
+// Crear un movimiento
 const createMovimiento = async (tipo, cantidad, fecha, id_usuario, id_farmaco) => {
     const query = {
         text: `
@@ -14,7 +14,7 @@ const createMovimiento = async (tipo, cantidad, fecha, id_usuario, id_farmaco) =
     return rows[0];
 };
 
-// Función para obtener todos los movimientos
+// Obtener todos los movimientos
 const getMovimientos = async () => {
     const query = {
         text: `
@@ -36,7 +36,6 @@ const getMovimientos = async () => {
     return rows;
 };
 
-// Exportar el modelo de movimientos
 export const MovimientosModel = {
     createMovimiento,
     getMovimientos

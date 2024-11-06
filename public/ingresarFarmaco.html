@@ -77,6 +77,9 @@
             <label for="ubicacion">Ubicación:</label>
             <input type="text" id="ubicacion" name="ubicacion" required>
             
+            <label for="stock_minimo">Stock Mínimo:</label>
+            <input type="number" id="stock_minimo" name="stock_minimo" required>
+            
             <button type="submit" class="btn">Agregar Fármaco</button>
         </form>
 
@@ -96,6 +99,7 @@
             const nombre = document.getElementById('nombre').value;
             const cantidad = document.getElementById('cantidad').value;
             const ubicacion = document.getElementById('ubicacion').value;
+            const stock_minimo = document.getElementById('stock_minimo').value;
 
             const token = sessionStorage.getItem('token');
             if (!token) {
@@ -107,7 +111,8 @@
                 const response = await axios.post('/api/v1/farmacos/create', {
                     nombre,
                     cantidad,
-                    ubicacion
+                    ubicacion,
+                    stock_minimo
                 }, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
